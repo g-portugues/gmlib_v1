@@ -4,8 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, UPolylinesFrm, StdCtrls, Spin, ExtCtrls, ComCtrls, GMMap, TeEngine,
-  Series, TeeProcs, Chart,
+  Dialogs, UPolylinesFrm, StdCtrls, Spin, ExtCtrls, ComCtrls, GMMap,
   GMLinkedComponents;
 
 type

@@ -2905,6 +2905,7 @@ end;
 
 destructor TCustomGMMap.Destroy;
 begin
+  SetActive(False);
   if Assigned(FRequiredProp) then FreeAndNil(FRequiredProp);
   if Assigned(FNonVisualProp) then FreeAndNil(FNonVisualProp);
   if Assigned(FLayers) then FreeAndNil(FLayers);
@@ -3815,37 +3816,43 @@ var
       if DirectionsChanged then EventFired(etDirectionsChanged, [XML, LinkCompZIndex]);
   end;
 begin
-  if csDesigning in ComponentState then Exit;
-  if not Assigned(FWebBrowser) or not FDocLoaded or not FIsDoMap then Exit;
+  SetEnableTimer(false);
+  exit;
+  try
+    if csDesigning in ComponentState then Exit;
+    if not Assigned(FWebBrowser) or not FDocLoaded or not FIsDoMap then Exit;
 
-  if not GetEventsFired(EventFired) then Exit;
+    if not GetEventsFired(EventFired) then Exit;
 
-  // map events
-  if EventFired.Map then MapEvent;
+    // map events
+    if EventFired.Map then MapEvent;
 
-  // marker events
-  if EventFired.Marker then MarkerEvent;
+    // marker events
+    if EventFired.Marker then MarkerEvent;
 
-  // infoWindow event
-  if EventFired.InfoWin then InfoWindowEvent;
+    // infoWindow event
+    if EventFired.InfoWin then InfoWindowEvent;
 
-  // polyline or polygon events
-  if EventFired.Polyline then PolylineEvent;
+    // polyline or polygon events
+    if EventFired.Polyline then PolylineEvent;
 
-  // check AutoUpdatePath
-  CheckAutoUpdatePath;
+    // check AutoUpdatePath
+    CheckAutoUpdatePath;
 
-  // rectangle events
-  if EventFired.Rectangle then RectangleEvent;
+    // rectangle events
+    if EventFired.Rectangle then RectangleEvent;
 
-  // circle events
-  if EventFired.Circle then CircleEvent;
+    // circle events
+    if EventFired.Circle then CircleEvent;
 
-  // groundoverlay events
-  if EventFired.GO then GroundOverlayEvent;
+    // groundoverlay events
+    if EventFired.GO then GroundOverlayEvent;
 
-  // direction events
-  if EventFired.Direction then DirectionEvent;
+    // direction events
+    if EventFired.Direction then DirectionEvent;
+  finally
+    SetEnableTimer(true);
+  end;
 end;
 
 procedure TCustomGMMap.PanBy(x, y: Integer);

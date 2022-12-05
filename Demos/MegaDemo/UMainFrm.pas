@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, Menus, ExtCtrls, OleCtrls, SHDocVw, StdCtrls, TeEngine,
-  TeeProcs, Chart, GMElevation, GMMarker, GMMarkerVCL, GMDirection,
+  Dialogs, ComCtrls, Menus, ExtCtrls, OleCtrls, SHDocVw, StdCtrls,
+  GMElevation, GMMarker, GMMarkerVCL, GMDirection,
   GMDirectionVCL, GMGeoCode, GMPolylineVCL, GMCircle, GMCircleVCL, GMRectangle,
   GMRectangleVCL, GMPolyline, GMPolygonVCL, GMMap, GMLinkedComponents,
   GMInfoWindow, GMClasses, GMMapVCL, GMConstants, GMElevationVCL,

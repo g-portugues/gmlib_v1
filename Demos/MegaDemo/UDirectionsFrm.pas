@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, ExtCtrls, Spin, TeEngine, Series, TeeProcs, Chart,
+  Dialogs, StdCtrls, ComCtrls, ExtCtrls, Spin,
   GMDirectionVCL, GMElevationVCL;
 
 type
@@ -122,8 +122,6 @@ type
     rbAlongPath: TRadioButton;
     rbForLocation: TRadioButton;
     eSamples: TSpinEdit;
-    Chart1: TChart;
-    Series1: TAreaSeries;
     Button1: TButton;
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -294,11 +292,11 @@ begin
     FGMElev.Execute;
 
     lbElevations.Clear;
-    Series1.Clear;
+//    Series1.Clear;
     for i := 0 to FGMElev.ElevationResult.Count - 1 do
     begin
       lbElevations.Items.Add(FGMElev.ElevationResult[i].Location.ToStr(FGMElev.Map.Precision) + ' => ' + FormatFloat('#,##0.####', FGMElev.ElevationResult[i].Elevation));
-      Series1.Add(FGMElev.ElevationResult[i].Elevation, '', clBlack);
+//      Series1.Add(FGMElev.ElevationResult[i].Elevation, '', clBlack);
     end;
   end
   else
@@ -509,7 +507,7 @@ begin
   FGMElev := GMElev;
 
   pcData.ActivePageIndex := 0;
-  Series1.Clear;
+//  Series1.Clear;
 end;
 
 procedure TDirectionsFrm.eArrDateChange(Sender: TObject);
@@ -790,7 +788,7 @@ procedure TDirectionsFrm.tvItemsChange(Sender: TObject; Node: TTreeNode);
 begin
   if Node.Level = 0 then
   begin
-    Series1.Clear;
+//    Series1.Clear;
     lbElevations.Clear;
     FGMDir.ShowRoute(lbResults.ItemIndex, Node.Index, cbHidde.Checked);
   end;

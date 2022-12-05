@@ -32,7 +32,8 @@ package GMLib_D_Seattle10;
 requires
   rtl,
   dbrtl,
-  xmlrtl;
+  xmlrtl,
+  DCEF_DX10;
 
 contains
   GMCircle in '..\src\GMCircle.pas',

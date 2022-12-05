@@ -1,5 +1,4 @@
-<!-- saved from url=(0014)about:internet -->
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html> 
 <head> 
 <meta http-equiv='X-UA-Compatible' content='IE=edge'>
@@ -11,10 +10,7 @@
   #map_canvas { height: 100% } 
 </style> 
 
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.27&key=API_KEY&sensor=false&libraries=weather,panoramio,geometry,drawing,visualization"></script> 
-<!--
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.27&key=&sensor=false&libraries=weather,panoramio,geometry,drawing,visualization"></script> 
--->
+<script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3.48&key=AIzaSyBmg3YTA9LEw2tDrqRpp6wWDYuDNGRXDF4&libraries=weather,panoramio,geometry,drawing,visualization"></script> 
 <script type="text/javascript" src="https://cdn.rawgit.com/cadetill/gmlib_v1/master/Resources/StyledMarker.js"></script>
 <script language=javascript>
   document.onkeydown = function(){
@@ -2462,6 +2458,7 @@
             ClickKml, PreserVKml, UrlKml, ShowTraffic, ShowTransit, ShowBicy, ShowPano, PanoClick, PanoFiltered, 
             PanoTag, PanoUserId, ShowWeather, WeatherClick, WeatherSupress, WeatherLabelColor, WeatherTemp, 
             WeatherWinSpeed, SVVisible) { 
+	
     while (linkedCompList.length > 0) 
       DeleteObject(linkedCompList[0].GMLibId, linkedCompList[0].GMLibZIndex);
     document.mapdata.mapisnull.value = "0"; 
@@ -2647,9 +2644,62 @@
     */
 
     MapsAssignEvents();
-	
-	
+		
   } 
+  
+	function gmGetFieldsName(formId){
+	  var fieldsName = ''; 
+	  const inputs = document.getElementById(formId).elements; 
+	  for(i=0;i<inputs.length;i++) { 
+		if (inputs[i].tagName === 'INPUT' || inputs[i].tagName === 'SELECT' || inputs[i].tagName === 'TEXTAREA') { 
+		  if (fieldsName==='') { 
+			fieldsName = inputs[i].name; 
+		  } else { 
+			fieldsName = fieldsName + ',' + inputs[i].name; 
+		  } 
+		} 
+	  }; 
+	  gmlibd.GetFieldsName(fieldsName);
+	}
+	
+	function gmGetFieldValue(formId, fieldName){
+	  const inputs = document.getElementById(formId).elements; 
+	  for(i=0;i<inputs.length;i++) { 
+		if (inputs[i].tagName === 'INPUT' || inputs[i].tagName === 'SELECT' || inputs[i].tagName === 'TEXTAREA') { 
+		  if (inputs[i].name===fieldName) { 
+			gmlibd.GetFieldValue(inputs[i].value); 
+			break; 
+		  } 
+		} 
+	  }; 
+	}
+	
+	function gmGetFormsName(){
+	  var formsName = ''; 
+	  const theForms = document.getElementsByTagName("form"); 
+	  for(i=0;i<theForms.length;i++) { 
+		if (i===0) { 
+		  formsName = theForms[i].name; 
+		} else { 
+		  formsName = formsName + ',' + theForms[i].name; 
+		}; 
+	  }; 
+	  gmlibd.GetFormsName(formsName); 
+	}
+	
+	function gmSetFieldValue(formId, fieldName, newValue){
+	  const inputs = document.getElementById(formId).elements; 
+	  for(i=0;i<inputs.length;i++) { 
+		if (inputs[i].tagName === INPUT || inputs[i].tagName === SELECT || inputs[i].tagName === TEXTAREA) { 
+		  if (inputs[i].name===fieldName) { 
+			inputs[i].value = newValue; 
+			gmlibd.SetFieldValue(inputs[i].value); 
+			break; 
+		  } 
+		} 
+	  }; 
+	}
+  
 </script> 
 </head> 
 <body>

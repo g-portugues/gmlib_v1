@@ -222,12 +222,15 @@ type
   private
     // internal variables
     OldOnLoadEnd: TOnLoadEnd;
+    oldOnProcessMessageReceived: TOnProcessMessageReceived;
     FTChr: TTimer;
     FStarTime: TDateTime;
 
     procedure OnTimerChr(Sender: TObject);
     procedure OnLoadEnd(Sender: TObject; const browser: ICefBrowser;
-      const frame: ICefFrame; httpStatusCode: Integer; out Result: Boolean);
+      const frame: ICefFrame; httpStatusCode: Integer);
+    procedure OnProcessMessageReceived(Sender: TObject; const browser: ICefBrowser;
+          sourceProcess: TCefProcessId; const message: ICefProcessMessage; out Result: Boolean);
     procedure SetWebBrowser(const Value: TChromium);
     function GetWebBrowser: TChromium;
   protected
@@ -488,8 +491,10 @@ begin
   if not (FWebBrowser is TChromium) then Exit;
 
   TChromium(FWebBrowser).OnLoadEnd := OldOnLoadEnd;
+  TChromium(FWebBrowser).OnProcessMessageReceived := oldOnProcessMessageReceived;
 
   OldOnLoadEnd := nil;
+  oldOnProcessMessageReceived := nil
 end;
 
 constructor TGMMapChr.Create(AOwner: TComponent);
@@ -498,6 +503,7 @@ begin
 
   FWC := TWebChromium.Create(nil);
   OldOnLoadEnd := nil;
+  oldOnProcessMessageReceived := nil;
   FTChr := TTimer.Create(Self);
   FTChr.Enabled := False;
   FTChr.OnTimer := OnTimerChr;
@@ -523,7 +529,10 @@ begin
   if not Result then Exit;
 
   if Assigned(TChromium(FWebBrowser).Browser) then
-    TChromium(FWebBrowser).Browser.MainFrame.ExecuteJavaScript(Format(Param, [NameFunct, Params]), '', 0);
+    TChromium(FWebBrowser).Browser.MainFrame.ExecuteJavaScript(
+      Format(Param, [NameFunct, Params]),
+      TChromium(FWebBrowser).Browser.MainFrame.GetURL,
+      0);
 
   if MapIsNull then
     raise Exception.Create(GetTranslateText('El mapa todavía no ha sido creado', Language));
@@ -543,7 +552,7 @@ begin
 
   // cargamos página inicial
   if Assigned(TChromium(FWebBrowser).Browser) then
-    TChromium(FWebBrowser).Browser.MainFrame.LoadString(GetBaseHTMLCode, 'http:\\localhost');
+    TChromium(FWebBrowser).Browser.MainFrame.LoadString(GetBaseHTMLCode, 'about:blank');
 end;
 
 procedure TGMMapChr.LoadBlankPage;
@@ -554,14 +563,51 @@ begin
 end;
 
 procedure TGMMapChr.OnLoadEnd(Sender: TObject; const browser: ICefBrowser;
-  const frame: ICefFrame; httpStatusCode: Integer; out Result: Boolean);
+  const frame: ICefFrame; httpStatusCode: Integer);
 begin
-  if Assigned(OldOnLoadEnd) then OldOnLoadEnd(Sender, browser, frame, httpStatusCode, Result);
+  if Assigned(OldOnLoadEnd) then OldOnLoadEnd(Sender, browser, frame, httpStatusCode);
 
   if Assigned(frame) then
   begin
     FDocLoaded := True;
     if Active and Assigned(AfterPageLoaded) then AfterPageLoaded(Self, True);
+  end;
+end;
+
+procedure TGMMapChr.OnProcessMessageReceived(Sender: TObject; const browser: ICefBrowser;
+      sourceProcess: TCefProcessId; const message: ICefProcessMessage; out Result: Boolean);
+begin
+  if Assigned(oldOnProcessMessageReceived) then
+    oldOnProcessMessageReceived(Sender, browser, sourceProcess, message, Result);
+
+  if (message.Name = 'GetFormsName') then
+  begin
+    TWebChromium(FWC).Forms.CommaText := message.ArgumentList.GetString(0);
+    TWebChromium(FWC).getFormsFinished := true;
+    Result := True;
+  end else begin
+    if (message.Name = 'GetFieldsName') then
+    begin
+      TWebChromium(FWC).Fields.CommaText := message.ArgumentList.GetString(0);
+      TWebChromium(FWC).GetFieldsFinished := true;
+      Result := True;
+    end else begin
+      if (message.Name = 'GetFieldValue') then
+      begin
+        TWebChromium(FWC).currentFieldValue := message.ArgumentList.GetString(0);
+        TWebChromium(FWC).getFieldValueFinished := true;
+        Result := True;
+      end else begin
+        if (message.Name = 'SetFieldValue') then
+        begin
+          TWebChromium(FWC).currentFieldValue := message.ArgumentList.GetString(0);
+          TWebChromium(FWC).setFieldValueFinished := true;
+          Result := True;
+        end else begin
+          Result := False;
+        end;
+      end;
+    end;
   end;
 end;
 
@@ -583,6 +629,7 @@ begin
   if (Value <> FWebBrowser) and Assigned(FWebBrowser) then
   begin
     TChromium(FWebBrowser).OnLoadEnd := OldOnLoadEnd;
+    TChromium(FWebBrowser).OnProcessMessageReceived := OldOnProcessMessageReceived;
   end;
 
   FWebBrowser := Value;
@@ -595,6 +642,10 @@ begin
     OldOnLoadEnd := TChromium(FWebBrowser).OnLoadEnd;
 
     TChromium(FWebBrowser).OnLoadEnd := OnLoadEnd;
+
+    oldOnProcessMessageReceived := TChromium(FWebBrowser).onProcessMessageReceived;
+
+    TChromium(FWebBrowser).onProcessMessageReceived := OnProcessMessageReceived;
 
 //    if Active then LoadBaseWeb;
     if Active then

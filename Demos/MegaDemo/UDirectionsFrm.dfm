@@ -548,8 +548,8 @@ object DirectionsFrm: TDirectionsFrm
         Top = 275
         Width = 97
         Height = 21
-        Date = 41109.893627997680000000
-        Time = 41109.893627997680000000
+        Date = 41109.000000000000000000
+        Time = 0.893627997676958300
         TabOrder = 10
         OnChange = eArrDateChange
       end
@@ -558,8 +558,8 @@ object DirectionsFrm: TDirectionsFrm
         Top = 275
         Width = 97
         Height = 21
-        Date = 41109.893627997680000000
-        Time = 41109.893627997680000000
+        Date = 41109.000000000000000000
+        Time = 0.893627997676958300
         Kind = dtkTime
         TabOrder = 11
         OnChange = eArrTimeChange
@@ -569,8 +569,8 @@ object DirectionsFrm: TDirectionsFrm
         Top = 323
         Width = 97
         Height = 21
-        Date = 41109.893627997680000000
-        Time = 41109.893627997680000000
+        Date = 41109.000000000000000000
+        Time = 0.893627997676958300
         Kind = dtkTime
         TabOrder = 12
         OnChange = eDepTimeChange
@@ -580,8 +580,8 @@ object DirectionsFrm: TDirectionsFrm
         Top = 323
         Width = 97
         Height = 21
-        Date = 41109.893627997680000000
-        Time = 41109.893627997680000000
+        Date = 41109.000000000000000000
+        Time = 0.893627997676958300
         TabOrder = 13
         OnChange = eDepDateChange
       end
@@ -1192,62 +1192,6 @@ object DirectionsFrm: TDirectionsFrm
               Caption = 'Show'
               TabOrder = 4
               OnClick = Button1Click
-            end
-          end
-          object Chart1: TChart
-            Left = 0
-            Top = 153
-            Width = 379
-            Height = 184
-            BackWall.Visible = False
-            BottomWall.Visible = False
-            LeftWall.Visible = False
-            Legend.Shadow.Visible = False
-            Legend.Visible = False
-            Title.Text.Strings = (
-              'TChart')
-            Title.Visible = False
-            View3D = False
-            View3DWalls = False
-            Align = alClient
-            TabOrder = 1
-            PrintMargins = (
-              15
-              3
-              15
-              3)
-            ColorPaletteIndex = 13
-            object Series1: TAreaSeries
-              Marks.Arrow.Visible = True
-              Marks.Callout.Brush.Color = clBlack
-              Marks.Callout.Arrow.Visible = True
-              Marks.Shadow.Color = 8684676
-              Marks.Shadow.Smooth = False
-              Marks.Shadow.Visible = False
-              Marks.ShapeStyle = fosRoundRectangle
-              Marks.Symbol.Shadow.Smooth = False
-              Marks.Symbol.Shadow.Visible = False
-              Marks.Visible = False
-              ShowInLegend = False
-              AreaChartBrush.Color = clGray
-              AreaChartBrush.BackColor = clDefault
-              Dark3D = False
-              DrawArea = True
-              Pointer.InflateMargins = False
-              Pointer.Style = psStar
-              Pointer.Visible = False
-              XValues.Name = 'X'
-              XValues.Order = loAscending
-              YValues.Name = 'Y'
-              YValues.Order = loNone
-              Data = {
-                001900000000000000001895400000000000808B400000000000C88E40000000
-                000030914000000000002C8F4000000000004E91400000000000169240000000
-                00001A93400000000000A8914000000000009090400000000000C69140000000
-                000062914000000000001A934000000000000C924000000000009A9040000000
-                00001291400000000000F2924000000000008893400000000000D29440000000
-                0000FC92400000000000529240000000000042934000000000006E9440000000
-                00009C93400000000000969440}
             end
           end
         end

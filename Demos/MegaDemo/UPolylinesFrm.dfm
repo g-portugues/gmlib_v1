@@ -830,62 +830,6 @@ object PolylinesFrm: TPolylinesFrm
     object tsElev: TTabSheet
       Caption = 'Elevation'
       ImageIndex = 5
-      object Chart1: TChart
-        Left = 0
-        Top = 153
-        Width = 364
-        Height = 212
-        BackWall.Visible = False
-        BottomWall.Visible = False
-        LeftWall.Visible = False
-        Legend.Shadow.Visible = False
-        Legend.Visible = False
-        Title.Text.Strings = (
-          'TChart')
-        Title.Visible = False
-        View3D = False
-        View3DWalls = False
-        Align = alClient
-        TabOrder = 0
-        PrintMargins = (
-          15
-          3
-          15
-          3)
-        ColorPaletteIndex = 13
-        object Series1: TAreaSeries
-          Marks.Arrow.Visible = True
-          Marks.Callout.Brush.Color = clBlack
-          Marks.Callout.Arrow.Visible = True
-          Marks.Shadow.Color = 8684676
-          Marks.Shadow.Smooth = False
-          Marks.Shadow.Visible = False
-          Marks.ShapeStyle = fosRoundRectangle
-          Marks.Symbol.Shadow.Smooth = False
-          Marks.Symbol.Shadow.Visible = False
-          Marks.Visible = False
-          ShowInLegend = False
-          AreaChartBrush.Color = clGray
-          AreaChartBrush.BackColor = clDefault
-          Dark3D = False
-          DrawArea = True
-          Pointer.InflateMargins = False
-          Pointer.Style = psStar
-          Pointer.Visible = False
-          XValues.Name = 'X'
-          XValues.Order = loAscending
-          YValues.Name = 'Y'
-          YValues.Order = loNone
-          Data = {
-            001900000000000000001895400000000000808B400000000000C88E40000000
-            000030914000000000002C8F4000000000004E91400000000000169240000000
-            00001A93400000000000A8914000000000009090400000000000C69140000000
-            000062914000000000001A934000000000000C924000000000009A9040000000
-            00001291400000000000F2924000000000008893400000000000D29440000000
-            0000FC92400000000000529240000000000042934000000000006E9440000000
-            00009C93400000000000969440}
-        end
-      end
       object Panel1: TPanel
         Left = 0
         Top = 0
@@ -893,7 +837,7 @@ object PolylinesFrm: TPolylinesFrm
         Height = 153
         Align = alTop
         Caption = ' '
-        TabOrder = 1
+        TabOrder = 0
         object Shape1: TShape
           Left = 24
           Top = 3

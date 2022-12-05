@@ -69,7 +69,7 @@ uses
   {$ENDIF}
 
   {$IFDEF CHROMIUM}
-  ceflib, cefvcl,
+  ceflib, cefvcl, Dialogs, GMFunctions,
   {$ENDIF}
 
   {$IFDEF DELPHIXE2}
@@ -147,6 +147,12 @@ type
   -------------------------------------------------------------------------------}
   {$IFDEF CHROMIUM}
   TWebChromium = class(TCustomWebChromium)
+  private
+    FCurrentFieldValue: string;
+    FGetFormsFinished: Boolean;
+    FGetFieldsFinished: Boolean;
+    FGetFieldValueFinished: Boolean;
+    FSetFieldValueFinished: Boolean;
   protected
     function WebFormFieldValue(const FormIdx: Integer; const FieldName: string): string; overload; override;
   public
@@ -180,7 +186,40 @@ type
       @param Browser navegador a establecer
     -------------------------------------------------------------------------------}
     procedure SetBrowser(Browser: TChromium); reintroduce; virtual;
+    property currentFieldValue: string read FCurrentFieldValue write FCurrentFieldValue;
+    property getFormsFinished: Boolean read FGetFormsFinished write FGetFormsFinished;
+    property getFieldsFinished: Boolean read FGetFieldsFinished write FGetFieldsFinished;
+    property getFieldValueFinished: boolean read FGetFieldValueFinished write FGetFieldValueFinished;
+    property setFieldValueFinished: boolean read FSetFieldValueFinished write FSetFieldValueFinished;
   end;
+
+  ISourceContainer = interface(ICefStringVisitor)
+    function Source: ustring;
+  end;
+
+  TSourceContainer = class(TCefStringVisitorOwn, ISourceContainer)
+  private
+    FSource: ustring;
+    FLoaded: Boolean;
+  protected
+    procedure Visit(const str: ustring); override;
+  public
+    function Source: ustring;
+    function Loaded: Boolean;
+  end;
+
+  TCustomRenderProcessHandler = class(TCefRenderProcessHandlerOwn)
+  protected
+    procedure OnWebKitInitialized; override;
+  end;
+
+  TFormsJSExtension = class
+    class procedure GetFormsName(const data: string);
+    class procedure GetFieldsName(const data: string);
+    class procedure GetFieldValue(const data: string);
+    class procedure SetFieldValue(const data: string);
+  end;
+
   {$ENDIF}
 
 implementation
@@ -466,6 +505,11 @@ end;
 constructor TWebChromium.Create(WebBrowser: TChromium);
 begin
   inherited Create(WebBrowser);
+  FCurrentFieldValue := '';
+  FGetFormsFinished := false;
+  FGetFieldsFinished := false;
+  FGetFieldValueFinished := false;
+  FSetFieldValueFinished := false;
 end;
 
 procedure TWebChromium.SaveToJPGFile(FileName: TFileName);
@@ -479,7 +523,7 @@ begin
 
   bmp := Vcl.Graphics.TBitMap.Create;
   try
-    cefvcl.CefGetBitmap(TChromium(FWebBrowser).Browser, PET_VIEW, bmp);
+    //cefvcl.CefGetBitmap(TChromium(FWebBrowser).Browser, PET_VIEW, bmp);
     with TJPEGImage.Create do
     try
       Assign(bmp);
@@ -499,10 +543,13 @@ end;
 
 procedure TWebChromium.WebFormFields(const FormIdx: Integer);
 var
-  Finish: Boolean;
   FormName: string;
+  EndTime: TDateTime;
 begin
+
   Fields.Clear;
+  FGetFieldsFinished := false;
+
   if not Assigned(FWebBrowser) then
     raise Exception.Create('WebBrowser not assigned');
   if not (FWebBrowser is TChromium) then
@@ -513,29 +560,29 @@ begin
     raise Exception.Create('Index out of bounds.');
 
   FormName := FForms[FormIdx];
-  Finish := False;
 
-  TChromium(FWebBrowser).Browser.MainFrame.VisitDomProc(
-    procedure (const doc: ICefDomDocument)
-    begin
-      FFields.CommaText := GetFieldsName(doc.GetElementById(FormName));
-      Finish := True;
-    end
+  TChromium(FWebBrowser).Browser.MainFrame.ExecuteJavaScript(
+    'gmGetFieldsName('''+ FormName +''');',
+    'about:blank',
+    0
   );
 
-  repeat Application.ProcessMessages until (Finish);
+  EndTime := IncSecond(Time, 4);
+
+  repeat Sleep(1); Application.ProcessMessages; until ((Time > EndTime) or FGetFieldsFinished);
+
 end;
 
 function TWebChromium.WebFormFieldValue(const FormIdx: Integer;
   const FieldName: string): string;
 var
-  Finish: Boolean;
   FormName: string;
-  Temp: string;
+  EndTime: TDateTime;
 begin
   inherited;
 
-  Temp := '';
+  FCurrentFieldValue := '';
+  FGetFieldValueFinished := false;
 
   if not Assigned(FWebBrowser) then
     raise Exception.Create('WebBrowser not assigned');
@@ -548,16 +595,17 @@ begin
 
   FormName := FForms[FormIdx];
 
-  TChromium(FWebBrowser).Browser.MainFrame.VisitDomProc(
-    procedure (const doc: ICefDomDocument)
-    begin
-      Temp := GetFieldValue(doc.GetElementById(FormName), FieldName);
-      Finish := True;
-    end
+  TChromium(FWebBrowser).Browser.MainFrame.ExecuteJavaScript(
+    'gmGetFieldValue('''+ FormName +''', '''+ FieldName +''');',
+    'about:blank',
+    0
   );
 
-  repeat Application.ProcessMessages until (Finish);
-  Result := Temp;
+  EndTime := IncSecond(Time, 4);
+
+  repeat TGMGenFunc.ProcessMessages; until ((Time > EndTime) or FGetFieldValueFinished);
+
+  Result := FCurrentFieldValue;
 
   if Pos('&nbsp;', Result) > 0 then
     {$IFDEF DELPHI2005}
@@ -569,37 +617,41 @@ end;
 
 procedure TWebChromium.WebFormNames;
 var
-  Finish: Boolean;
   EndTime: TTime;
 begin
+  if FGetFormsFinished then exit;
+
   FForms.Clear;
+  FGetFormsFinished := false;
+
   if not Assigned(FWebBrowser) then
     raise Exception.Create('WebBrowser not assigned');
   if not (FWebBrowser is TChromium) then
     raise Exception.Create('The WebBrowser property is not a TChromium.');
 
-  Finish := False;
-  TChromium(FWebBrowser).Browser.MainFrame.VisitDomProc(
-        procedure (const doc: ICefDomDocument)
-        begin
-          FForms.CommaText := GetFormsName(doc.Body);
-          Finish := True;
-        end
+  TChromium(FWebBrowser).Browser.MainFrame.ExecuteJavaScript(
+    'gmGetFormsName();',
+    'about:blank',
+    0
   );
+
   EndTime := IncSecond(Time, 4);
 
-  repeat Sleep(1); Application.ProcessMessages; until Finish or (Time > EndTime);
-  if Time > EndTime then
-    raise Exception.Create('Time out');
+  repeat Sleep(1); Application.ProcessMessages; until (Time > EndTime);
+  if (Time > EndTime) and (not FGetFormsFinished) then
+    raise Exception.Create('Get Forms Name time out');
 end;
 
 procedure TWebChromium.WebFormSetFieldValue(const FormIdx: Integer;
   const FieldName, NewValue: string);
 var
-  Finish: Boolean;
   FormName: string;
+  EndTime: TDateTime;
 begin
   inherited;
+
+  FCurrentFieldValue := '';
+  FSetFieldValueFinished := false;
 
   if not Assigned(FWebBrowser) then
     raise Exception.Create('WebBrowser not assigned');
@@ -612,15 +664,16 @@ begin
 
   FormName := FForms[FormIdx];
 
-  TChromium(FWebBrowser).Browser.MainFrame.VisitDomProc(
-    procedure (const doc: ICefDomDocument)
-    begin
-      SetFieldValue(doc.GetElementById(FormName), FieldName, NewValue);
-      Finish := True;
-    end
+  TChromium(FWebBrowser).Browser.MainFrame.ExecuteJavaScript(
+    'gmSetFieldValue('''+ FormName +''', '''+ FieldName +''', '''+ NewValue +''');',
+    'about:blank',
+    0
   );
 
-  repeat Application.ProcessMessages until (Finish);
+  EndTime := IncSecond(Time, 4);
+
+  repeat Sleep(1); TGMGenFunc.ProcessMessages; until ((Time > EndTime) or FSetFieldValueFinished);
+
 end;
 
 procedure TWebChromium.WebFormSubmit(const FormIdx: Integer);
@@ -642,10 +695,13 @@ begin
 
   if TChromium(FWebBrowser).Browser <> nil then
     TChromium(FWebBrowser).Browser.MainFrame.ExecuteJavaScript(
-      'document.forms["' + FormName + '"].submit();', '', 0);
+      'document.forms["' + FormName + '"].submit();', 'about:blank', 0);
 end;
 
 function TWebChromium.WebHTMLCode: string;
+var
+  SourceContainer: TSourceContainer;
+  EndTime: TDateTime;
 begin
   Result := '';
   if not Assigned(FWebBrowser) then
@@ -654,7 +710,17 @@ begin
     raise Exception.Create('The WebBrowser property is not a TChromium.');
 
   if TChromium(FWebBrowser).Browser = nil then Exit;
-  Result := TChromium(FWebBrowser).Browser.MainFrame.Source;
+
+  SourceContainer := TSourceContainer.Create;
+  TChromium(FWebBrowser).Browser.MainFrame.GetSource(SourceContainer);
+
+  EndTime := IncSecond(Time, 10);
+
+  repeat Sleep(1); Application.ProcessMessages; until SourceContainer.Loaded or (Time > EndTime);
+  if Time > EndTime then
+    raise Exception.Create('Time out');
+
+  Result := SourceContainer.Source;
 end;
 
 procedure TWebChromium.WebPreview;
@@ -675,13 +741,81 @@ begin
     raise Exception.Create('The WebBrowser property is not a TChromium.');
 
   if TChromium(FWebBrowser).Browser <> nil then
-    TChromium(FWebBrowser).Browser.MainFrame.Print;
+    ICefBrowserHost(TChromium(FWebBrowser).Browser.MainFrame).Print;
 end;
 
 procedure TWebChromium.WebPrintWithoutDialog;
 begin
   raise Exception.Create('This method is not implemented for this class. Call WebPrintWithDialog in his stead.');
 end;
+
+{ TSourceContainer }
+
+function TSourceContainer.Source: ustring;
+begin
+  Result := FSource;
+end;
+
+function TSourceContainer.Loaded: Boolean;
+begin
+  Result := FLoaded;
+end;
+
+procedure TSourceContainer.Visit(const str: ustring);
+begin
+  FSource := str;
+  FLoaded := true;
+end;
+
+{ TCustomRenderProcessHandler }
+
+procedure TCustomRenderProcessHandler.OnWebKitInitialized;
+begin
+  TCefRTTIExtension.Register('gmlibd', TFormsJSExtension);
+end;
+
+{ TFormsJSExtension }
+
+class procedure TFormsJSExtension.GetFormsName(const data: string);
+var
+  msg: ICefProcessMessage;
+begin
+  msg := TCefProcessMessageRef.New('GetFormsName');
+  msg.ArgumentList.SetString(0, data);
+  TCefv8ContextRef.Current.Browser.SendProcessMessage(PID_BROWSER, msg);
+end;
+
+class procedure TFormsJSExtension.GetFieldsName(const data: string);
+var
+  msg: ICefProcessMessage;
+begin
+  msg := TCefProcessMessageRef.New('GetFieldsName');
+  msg.ArgumentList.SetString(0, data);
+  TCefv8ContextRef.Current.Browser.SendProcessMessage(PID_BROWSER, msg);
+end;
+
+class procedure TFormsJSExtension.GetFieldValue(const data: string);
+var
+  msg: ICefProcessMessage;
+begin
+  msg := TCefProcessMessageRef.New('GetFieldValue');
+  msg.ArgumentList.SetString(0, data);
+  TCefv8ContextRef.Current.Browser.SendProcessMessage(PID_BROWSER, msg);
+end;
+
+class procedure TFormsJSExtension.SetFieldValue(const data: string);
+var
+  msg: ICefProcessMessage;
+begin
+  msg := TCefProcessMessageRef.New('SetFieldValue');
+  msg.ArgumentList.SetString(0, data);
+  TCefv8ContextRef.Current.Browser.SendProcessMessage(PID_BROWSER, msg);
+end;
+
+initialization
+  CefRenderProcessHandler := TCustomRenderProcessHandler.Create;
+  CefBrowserProcessHandler := TCefBrowserProcessHandlerOwn.Create;
+
 {$ENDIF}
 
 end.

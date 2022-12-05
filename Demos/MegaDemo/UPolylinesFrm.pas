@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Spin, ComCtrls, GMPolyline, ExtCtrls, GMMap, GMElevationVCL,
-  TeEngine, Series, TeeProcs, Chart, GMLinkedComponents;
+  GMLinkedComponents;
 
 type
   TPolylinesFrm = class(TForm)
@@ -105,9 +105,7 @@ type
     lIStrokeWeight: TLabel;
     eIStrokeWeight: TSpinEdit;
     tsElev: TTabSheet;
-    Chart1: TChart;
     Panel1: TPanel;
-    Series1: TAreaSeries;
     lbElevations: TListBox;
     rbAlongPath: TRadioButton;
     rbForLocation: TRadioButton;
@@ -659,7 +657,7 @@ begin
   for i :=  0 to FGMPoly.Count - 1 do
     lbItems.Items.Add(FGMPoly[i].Text);
 
-  Series1.Clear;
+//  Series1.Clear;
   eEncodePath.Text := '';
 end;
 
@@ -923,11 +921,11 @@ begin
   FGMElev.Execute;
 
   lbElevations.Clear;
-  Series1.Clear;
+//  Series1.Clear;
   for i := 0 to FGMElev.ElevationResult.Count - 1 do
   begin
     lbElevations.Items.Add(FGMElev.ElevationResult[i].Location.ToStr(FGMElev.Map.Precision) + ' => ' + FormatFloat('#,##0.#', FGMElev.ElevationResult[i].Elevation));
-    Series1.Add(FGMElev.ElevationResult[i].Elevation, '', clBlack);
+//    Series1.Add(FGMElev.ElevationResult[i].Elevation, '', clBlack);
   end;
 end;
 

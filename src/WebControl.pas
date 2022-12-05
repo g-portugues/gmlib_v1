@@ -526,6 +526,7 @@ begin
   WebFormNames;
   if Forms.IndexOf(FormName) = -1 then Exit;
   WebFormFields(FormName);
+  if not Assigned(Fields) then Exit;  
   if Fields.IndexOf(FieldName) <> -1 then
     Result := Trim(WebFormFieldValue(Forms.IndexOf(FormName), FieldName));
 end;
